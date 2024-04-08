@@ -1,334 +1,393 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tic Tac Toe</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-    #board {
-      display: grid;
-      grid-template-columns: repeat(3, 80px);
-      grid-gap: 5px;
-      margin-top: 20px;
-    }
-    .cell {
-  width: 80px;
-  height: 80px;
-  font-size: 24px;
-  cursor: pointer;
-  border: 1px solid #ccc; /* Add border to each cell */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative; /* Positioning context for the line */
-}
-    .cell:hover {
-      background-color: #f0f0f0;
-    }
-    .cell::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: 2px solid transparent; /* Adjust the thickness of the line */
-  z-index: 0; /* Ensure the line is behind the content */
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
 
-.win-line {
-  position: absolute;
-  content: '';
-  width: 100%;
-  height: 100%;
-  border: 2px solid #4CAF50; /* Change to the color you prefer */
-  z-index: 1;
-}
-    #message {
-      margin-top: 20px;
-      font-size: 18px;
-    }
-    #scoreboard {
-      margin-top: 20px;
-      font-size: 20px;
-    }
-    .button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    .win-line {
-  position: absolute;
-  background-color: #4CAF50; /* Change to the color you prefer */
-  z-index: 1;
-}
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-gap: 5px;
+            margin-top: 20px;
+            position: relative; /* Add position relative to the board */
+        }
 
-  </style>
+        .cell {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            /* Add border to each cell */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* Positioning context for the line */
+        }
+
+        .win-line {
+            position: absolute;
+            background-color: #4CAF50;
+            /* Change to the color you prefer */
+            z-index: 1; /* Ensure the win lines are above the cells */
+        }
+
+        .win-line.horizontal {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            /* Adjust the thickness of the line */
+            transform: translateY(-2px); /* Center the line vertically */
+        }
+
+        .win-line.vertical {
+            top: 0;
+            left: 50%;
+            width: 4px;
+            /* Adjust the thickness of the line */
+            height: 100%;
+            transform: translateX(-2px); /* Center the line horizontally */
+        }
+
+        .win-line.diagonal1 {
+            top: 0;
+            left: 0;
+            width: 141%;
+            /* Adjust the length of the line for the diagonal */
+            height: 4px;
+            /* Adjust the thickness of the line */
+            transform: rotate(45deg);
+            transform-origin: top left;
+        }
+
+        .win-line.diagonal2 {
+            top: 0;
+            right: 0;
+            width: 141%;
+            /* Adjust the length of the line for the diagonal */
+            height: 4px;
+            /* Adjust the thickness of the line */
+            transform: rotate(-45deg);
+            transform-origin: top right;
+        }
+
+        .cell:hover {
+            background-color: #f0f0f0;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #scoreboard {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
 </head>
+
 <body>
-  <h1>Tic Tac Toe</h1>
-  <div id="board"></div>
-  <div id="message"></div>
-  <div id="scoreboard"></div>
-  <button class="button" onclick="setLevel(1)">Level 1</button>
-  <button class="button" onclick="setLevel(3)">Level 2</button>
-  <button class="button" onclick="restartGame()">Restart Game</button>
-  <button class="button" onclick="resetGame()">Reset Game & Scoreboard</button>
-  <button class="button" onclick="setLevel(2)">player 2</button>
+    <h1>Tic Tac Toe</h1>
+    <div id="board"></div>
+    <div id="message"></div>
+    <div id="scoreboard"></div>
+    <button class="button" onclick="setLevel(1)">Level 1</button>
+    <button class="button" onclick="setLevel(3)">Level 2</button>
+    <button class="button" onclick="restartGame()">Restart Game</button>
+    <button class="button" onclick="resetGame()">Reset Game & Scoreboard</button>
+    <button class="button" onclick="setLevel(2)">player 2</button>
 
-  <script>
-    let board = ['', '', '',
-                 '', '', '',
-                 '', '', ''];
-    let currentPlayer = 'X';
-    let gameOver = false;
-    let score = { 'X': 0, 'O': 0 };
+    <script>
+        let board = ['', '', '',
+            '', '', '',
+            '', '', ''];
+        let currentPlayer = 'X';
+        let gameOver = false;
+        let score = { 'X': 0, 'O': 0 };
 
-    let difficultyLevel = 2;
+        let difficultyLevel = 2;
 
-    const winPatterns = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8],
-      [0, 3, 6], [1, 4, 7], [2, 5, 8],
-      [0, 4, 8], [2, 4, 6]
-    ];
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
 
-    const cells = document.querySelectorAll('.cell');
-    const message = document.getElementById('message');
-    const scoreboard = document.getElementById('scoreboard');
+        const cells = document.querySelectorAll('.cell');
+        const message = document.getElementById('message');
+        const scoreboard = document.getElementById('scoreboard');
 
-    function initGame() {
-      board = ['', '', '',
-               '', '', '',
-               '', '', ''];
-      gameOver = false;
-      renderBoard();
-      message.textContent = '';
+        function initGame() {
+            board = ['', '', '',
+                '', '', '',
+                '', '', ''];
+            gameOver = false;
+            renderBoard();
+            message.textContent = '';
 
-      if (difficultyLevel === 3 && currentPlayer === 'O' && !gameOver) {
-        setTimeout(computerMove, 500);
-      }
-    }
-
-    function renderBoard() {
-      document.getElementById('board').innerHTML = board.map((value, index) => {
-        return `<div class="cell" onclick="cellClicked(${index})">${value}</div>`;
-      }).join('');
-
-      // Remove existing win lines
-      document.querySelectorAll('.win-line').forEach(line => line.remove());
-    }
-
-    function cellClicked(index) {
-      if (board[index] || gameOver) return;
-
-      board[index] = currentPlayer;
-      renderBoard();
-
-      if (checkWinner(currentPlayer)) {
-        if (currentPlayer === 'X') {
-          message.textContent = `You won!`;
-          score[currentPlayer]++;
-        } else {
-          message.textContent = `You lost!`;
-          score['O']++;
+            if (difficultyLevel === 3 && currentPlayer === 'O' && !gameOver) {
+                setTimeout(computerMove, 500);
+            }
         }
-        updateScoreboard();
-        gameOver = true;
-        markWinLine(index);
-        return;
-      }
 
-      if (board.every(cell => cell)) {
-        message.textContent = "It's a draw!";
-        gameOver = true;
-        setTimeout(restartGame, 1000);
-        return;
-      }
+        function renderBoard() {
+            document.getElementById('board').innerHTML = board.map((value, index) => {
+                return `<div class="cell" onclick="cellClicked(${index})">${value}</div>`;
+            }).join('');
 
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-
-      if (currentPlayer === 'O' && !gameOver) {
-        setTimeout(computerMove, 500);
-      }
-    }
-
-    function markWinLine(index) {
-  const board = document.getElementById('board');
-  const squareSize = board.clientWidth / 3; // Calculate the size of each square
-  const [a, b, c] = winPatterns.find(pattern => pattern.includes(index));
-
-  const line = document.createElement('div');
-  line.classList.add('win-line');
-
-  if (index === a) {
-    line.style.cssText = `top: calc(50% - 5px); left: 0; width: ${squareSize}px; height: 10px;`;
-  } else if (index === b) {
-    line.style.cssText = `top: 0; left: calc(50% - 5px); width: 10px; height: ${squareSize}px;`;
-  } else if (index === c) {
-    line.style.cssText = `bottom: 0; left: calc(50% - 5px); width: 10px; height: ${squareSize}px;`;
-  }
-
-  board.appendChild(line);
-}
-    function computerMove() {
-      let availableMoves = board.reduce((acc, cell, index) => {
-        if (!cell) acc.push(index);
-        return acc;
-      }, []);
-
-      let computerIndex;
-      if (difficultyLevel === 1) {
-        computerIndex = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-      } else if (difficultyLevel === 2) {
-        computerIndex = getBestMoveMedium();
-      } else if (difficultyLevel === 3) {
-        computerIndex = getBestMoveHard();
-      }
-
-      cellClicked(computerIndex);
-    }
-
-    function getBestMoveMedium() {
-      // Medium difficulty: Attempt to block player winning moves or win if possible, else prioritize moves that contribute to completing a row, column, or diagonal
-      for (let pattern of winPatterns) {
-        let playerMoves = pattern.filter(index => board[index] === 'X');
-        if (playerMoves.length === 2) {
-          for (let index of pattern) {
-            if (board[index] === '') return index; // Block player's winning move
-          }
+            // Remove existing win lines
+            document.querySelectorAll('.win-line').forEach(line => line.remove());
         }
-      }
 
-      for (let pattern of winPatterns) {
-        let computerMoves = pattern.filter(index => board[index] === 'O');
-        if (computerMoves.length === 2) {
-          for (let index of pattern) {
-            if (board[index] === '') return index; // Win if possible
-          }
+        function cellClicked(index) {
+            if (board[index] || gameOver) return;
+
+            board[index] = currentPlayer;
+            renderBoard();
+
+            if (checkWinner(currentPlayer)) {
+                if (currentPlayer === 'X') {
+                    message.textContent = `You won!`;
+                    score[currentPlayer]++;
+                } else {
+                    message.textContent = `You lost!`;
+                    score['O']++;
+                }
+                updateScoreboard();
+                gameOver = true;
+                markWinLine(index);
+                return;
+            }
+
+            if (board.every(cell => cell)) {
+                message.textContent = "It's a draw!";
+                gameOver = true;
+                setTimeout(restartGame, 1000);
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+
+            if (currentPlayer === 'O' && !gameOver) {
+                setTimeout(computerMove, 500);
+            }
         }
-      }
 
-      // Prioritize moves that contribute to completing a row, column, or diagonal
-      for (let pattern of winPatterns) {
-        let emptyCells = pattern.filter(index => board[index] === '');
-        if (emptyCells.length === 1) {
-          return emptyCells[0];
+        function markWinLine(index) {
+            const pattern = winPatterns.find(pattern => pattern.includes(index));
+            const [a, b, c] = pattern;
+
+            if (checkWinner(currentPlayer)) {
+                drawLine(a, b);
+                drawLine(b, c);
+                drawLine(c, a);
+            }
         }
-      }
 
-      return availableMoves[Math.floor(Math.random() * availableMoves.length)]; // Random move if no immediate winning, blocking, or completing moves
-    }
+        function drawLine(index1, index2) {
+            const cell1 = document.querySelectorAll('.cell')[index1];
+            const cell2 = document.querySelectorAll('.cell')[index2];
 
-    function getBestMoveHard() {
-      // Hard difficulty: Use minimax algorithm for best move
-      let bestScore = -Infinity;
-      let move;
+            const line = document.createElement('div');
+            line.classList.add('win-line');
 
-      for (let i = 0; i < 9; i++) {
-        if (board[i] === '') {
-          board[i] = 'O';
-          let score = minimax(board, 0, false);
-          board[i] = '';
-          if (score > bestScore) {
-            bestScore = score;
-            move = i;
-          }
+            const rect1 = cell1.getBoundingClientRect();
+            const rect2 = cell2.getBoundingClientRect();
+
+            const centerX1 = rect1.left + rect1.width / 2;
+            const centerY1 = rect1.top + rect1.height / 2;
+            const centerX2 = rect2.left + rect2.width / 2;
+            const centerY2 = rect2.top + rect2.height / 2;
+
+            const length = Math.sqrt((centerX2 - centerX1) ** 2 + (centerY2 - centerY1) ** 2);
+            const angle = Math.atan2(centerY2 - centerY1, centerX2 - centerX1) * (180 / Math.PI);
+
+            line.style.width = length + 'px';
+            line.style.height = '4px'; // Adjust the thickness of the line
+            line.style.background = '#4CAF50'; // Change to the color you prefer
+            line.style.transform = `rotate(${angle}deg) translate(-50%, -50%)`; // Adjust position to center of cells
+            line.style.position = 'absolute';
+            line.style.top = centerY1 + 'px';
+            line.style.left = centerX1 + 'px';
+
+            document.getElementById('board').appendChild(line);
         }
-      }
 
-      return move;
-    }
 
-    function minimax(board, depth, isMaximizing) {
-      let result = checkResult();
-      if (result !== null) {
-        return result;
-      }
+        function computerMove() {
+            let availableMoves = board.reduce((acc, cell, index) => {
+                if (!cell) acc.push(index);
+                return acc;
+            }, []);
 
-      if (isMaximizing) {
-        let bestScore = -Infinity;
-        for (let i = 0; i < 9; i++) {
-          if (board[i] === '') {
-            board[i] = 'O';
-            let score = minimax(board, depth + 1, false);
-            board[i] = '';
-            bestScore = Math.max(score, bestScore);
-          }
+            let computerIndex;
+            if (difficultyLevel === 1) {
+                computerIndex = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+            } else if (difficultyLevel === 2) {
+                computerIndex = getBestMoveMedium();
+            } else if (difficultyLevel === 3) {
+                computerIndex = getBestMoveHard();
+            }
+
+            cellClicked(computerIndex);
         }
-        return bestScore;
-      } else {
-        let bestScore = Infinity;
-        for (let i = 0; i < 9; i++) {
-          if (board[i] === '') {
-            board[i] = 'X';
-            let score = minimax(board, depth + 1, true);
-            board[i] = '';
-            bestScore = Math.min(score, bestScore);
-          }
+
+        function getBestMoveMedium() {
+            // Medium difficulty: Attempt to block player winning moves or win if possible, else prioritize moves that contribute to completing a row, column, or diagonal
+            for (let pattern of winPatterns) {
+                let playerMoves = pattern.filter(index => board[index] === 'X');
+                if (playerMoves.length === 2) {
+                    for (let index of pattern) {
+                        if (board[index] === '') return index; // Block player's winning move
+                    }
+                }
+            }
+
+            for (let pattern of winPatterns) {
+                let computerMoves = pattern.filter(index => board[index] === 'O');
+                if (computerMoves.length === 2) {
+                    for (let index of pattern) {
+                        if (board[index] === '') return index; // Win if possible
+                    }
+                }
+            }
+
+            // Prioritize moves that contribute to completing a row, column, or diagonal
+            for (let pattern of winPatterns) {
+                let emptyCells = pattern.filter(index => board[index] === '');
+                if (emptyCells.length === 1) {
+                    return emptyCells[0];
+                }
+            }
+
+            return availableMoves[Math.floor(Math.random() * availableMoves.length)]; // Random move if no immediate winning, blocking, or completing moves
         }
-        return bestScore;
-      }
-    }
 
-    function checkResult() {
-      for (let pattern of winPatterns) {
-        let [a, b, c] = pattern;
-        if (board[a] !== '' && board[a] === board[b] && board[b] === board[c]) {
-          if (board[a] === 'O') {
-            return 1; // Computer wins
-          } else {
-            return -1; // Player wins
-          }
+        function getBestMoveHard() {
+            // Hard difficulty: Use minimax algorithm for best move
+            let bestScore = -Infinity;
+            let move;
+
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === '') {
+                    board[i] = 'O';
+                    let score = minimax(board, 0, false);
+                    board[i] = '';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move = i;
+                    }
+                }
+            }
+
+            return move;
         }
-      }
-      if (board.every(cell => cell !== '')) {
-        return 0; // Draw
-      }
-      return null; // Game not ended
-    }
 
-    function checkWinner(player) {
-      return winPatterns.some(pattern => {
-        return pattern.every(index => board[index] === player);
-      });
-    }
+        function minimax(board, depth, isMaximizing) {
+            let result = checkResult();
+            if (result !== null) {
+                return result;
+            }
 
-    function updateScoreboard() {
-      scoreboard.textContent = `Score: X - ${score['X']} | O - ${score['O']}`;
-    }
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = 'O';
+                        let score = minimax(board, depth + 1, false);
+                        board[i] = '';
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = 'X';
+                        let score = minimax(board, depth + 1, true);
+                        board[i] = '';
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
+            }
+        }
 
-    function restartGame() {
-      initGame();
-      updateScoreboard();
-    }
+        function checkResult() {
+            for (let pattern of winPatterns) {
+                let [a, b, c] = pattern;
+                if (board[a] !== '' && board[a] === board[b] && board[b] === board[c]) {
+                    if (board[a] === 'O') {
+                        return 1; // Computer wins
+                    } else {
+                        return -1; // Player wins
+                    }
+                }
+            }
+            if (board.every(cell => cell !== '')) {
+                return 0; // Draw
+            }
+            return null; // Game not ended
+        }
 
-    function resetGame() {
-      score['X'] = 0;
-      score['O'] = 0;
-      restartGame();
-    }
+        function checkWinner(player) {
+            return winPatterns.some(pattern => {
+                return pattern.every(index => board[index] === player);
+            });
+        }
 
-    function setLevel(level) {
-      difficultyLevel = level;
-      if (difficultyLevel === 3) {
-        currentPlayer = 'O';
-        computerMove();
-      } else {
-        currentPlayer = 'X';
-      }
-      restartGame();
-    }
+        function updateScoreboard() {
+            scoreboard.textContent = `Score: X - ${score['X']} | O - ${score['O']}`;
+        }
 
-    initGame();
-  </script>
-  <a href="index.html">בית</a>
-  <a href="index2.html">מחשבון</a>
+        function restartGame() {
+            initGame();
+            updateScoreboard();
+        }
+
+        function resetGame() {
+            score['X'] = 0;
+            score['O'] = 0;
+            restartGame();
+        }
+
+        function setLevel(level) {
+            difficultyLevel = level;
+            if (difficultyLevel === 3) {
+                currentPlayer = 'O';
+                computerMove();
+            } else {
+                currentPlayer = 'X';
+            }
+            restartGame();
+        }
+
+        initGame();
+    </script>
+    <a href="index.html">בית</a>
+    <a href="index2.html">מחשבון</a>
 </body>
+
 </html>
