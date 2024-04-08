@@ -24,9 +24,27 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
     }
     .cell:hover {
       background-color: #f0f0f0;
+    }
+    .win-cell {
+      background-color: #6aff6a;
+    }
+    .winner-symbol {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px solid black;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    .win-line {
+      position: absolute;
+      z-index: 1;
+      background-color: black;
     }
     #message {
       margin-top: 20px;
@@ -54,11 +72,10 @@
   <div id="message"></div>
   <div id="scoreboard"></div>
   <button class="button" onclick="setLevel(1)">Level 1</button>
-  <button class="button" onclick="setLevel(3)">Level 2</button>
+  <button class="button" onclick="setLevel(2)">Level 2</button>
+  <button class="button" onclick="setLevel(3)">Level 3</button>
   <button class="button" onclick="restartGame()">Restart Game</button>
   <button class="button" onclick="resetGame()">Reset Game & Scoreboard</button>
-  <button class="button" onclick="setLevel(2)">player 2</button>
-
   <script>
     let board = ['', '', '',
                  '', '', '',
@@ -66,6 +83,8 @@
     let currentPlayer = 'X';
     let gameOver = false;
     let score = { 'X': 0, 'O': 0 };
+    let winLine = null;
+    let markWinner = false;
 
     let difficultyLevel = 2;
 
@@ -84,6 +103,7 @@
                '', '', '',
                '', '', ''];
       gameOver = false;
+      winLine = null;
       renderBoard();
       message.textContent = '';
 
@@ -94,8 +114,49 @@
 
     function renderBoard() {
       document.getElementById('board').innerHTML = board.map((value, index) => {
-        return `<div class="cell" onclick="cellClicked(${index})">${value}</div>`;
+        let className = 'cell';
+        if (markWinner && winLine && winLine.includes(index)) {
+          className += ' win-cell';
+        }
+        return `<div class="${className}" onclick="cellClicked(${index})">${value}</div>`;
       }).join('');
+      if (markWinner && winLine) {
+        drawWinLine();
+      } else {
+        clearWinLine();
+      }
+    }
+
+    function drawWinLine() {
+      const [a, b, c] = winLine;
+      const cellA = document.querySelector(`#board .cell:nth-child(${a + 1})`);
+      const cellB = document.querySelector(`#board .cell:nth-child(${b + 1})`);
+      const cellC = document.querySelector(`#board .cell:nth-child(${c + 1})`);
+
+      const centerX = (cellA.offsetLeft + cellB.offsetLeft + cellC.offsetLeft) / 3;
+      const centerY = (cellA.offsetTop + cellB.offsetTop + cellC.offsetTop) / 3;
+
+      const angle = Math.atan2(cellA.offsetTop - cellB.offsetTop, cellA.offsetLeft - cellB.offsetLeft) * 180 / Math.PI;
+
+      const length = Math.sqrt(Math.pow(cellA.offsetTop - cellB.offsetTop, 2) + Math.pow(cellA.offsetLeft - cellB.offsetLeft, 2));
+
+      const line = document.createElement('div');
+      line.className = 'win-line';
+      line.style.width = `${length}px`;
+      line.style.height = '3px';
+      line.style.backgroundColor = 'black';
+      line.style.position = 'absolute';
+      line.style.top = `${centerY}px`;
+      line.style.left = `${centerX}px`;
+      line.style.transform = `rotate(${angle}deg)`;
+      document.body.appendChild(line);
+    }
+
+    function clearWinLine() {
+      const existingLine = document.querySelector('.win-line');
+      if (existingLine) {
+        existingLine.parentNode.removeChild(existingLine);
+      }
     }
 
     function cellClicked(index) {
@@ -114,6 +175,7 @@
         }
         updateScoreboard();
         gameOver = true;
+        toggleWinnerMarking(); // Automatically toggle marking the winner
         return;
       }
 
@@ -236,8 +298,10 @@
         let [a, b, c] = pattern;
         if (board[a] !== '' && board[a] === board[b] && board[b] === board[c]) {
           if (board[a] === 'O') {
+            winLine = pattern;
             return 1; // Computer wins
           } else {
+            winLine = pattern;
             return -1; // Player wins
           }
         }
@@ -246,12 +310,6 @@
         return 0; // Draw
       }
       return null; // Game not ended
-    }
-
-    function checkWinner(player) {
-      return winPatterns.some(pattern => {
-        return pattern.every(index => board[index] === player);
-      });
     }
 
     function updateScoreboard() {
@@ -278,6 +336,11 @@
         currentPlayer = 'X';
       }
       restartGame();
+    }
+
+    function toggleWinnerMarking() {
+      markWinner = !markWinner;
+      renderBoard();
     }
 
     initGame();
